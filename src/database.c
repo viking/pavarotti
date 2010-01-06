@@ -3,8 +3,8 @@
 p_database *
 database_open()
 {
-  char path[2048], *home;
-  int exists;
+  char path[2048], *home, *errmsg;
+  int exists, result;
   FILE *fp;
   p_database *retval;
 
@@ -19,7 +19,7 @@ database_open()
   if (chdir(path) != 0) {
     switch(errno) {
       case ENOENT:
-        if (mkdir(path, 0644) == 0) {
+        if (mkdir(path, 0755) == 0) {
           break;
         }
       default:
@@ -45,7 +45,13 @@ database_open()
   }
 
   if (exists == 0) {
-    /* create schema */
+    result = sqlite3_exec(retval->s_db, "CREATE TABLE songs(id INTEGER PRIMARY KEY);", NULL, NULL, &errmsg);
+    if (result != SQLITE_OK) {
+      fprintf(stderr, "Couldn't run query: %s\n", errmsg);
+      sqlite3_free(errmsg);
+      database_close(retval);
+      return(NULL);
+    }
   }
 
   return(retval);

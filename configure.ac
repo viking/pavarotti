@@ -1,11 +1,11 @@
 # Process this file with autoconf to produce a configure script.
 
 # Prelude.
-AC_PREREQ([2.59])
+#AC_PREREQ([2.59])
 AC_INIT([pavarotti], [0.0.0], [viking AT pillageandplunder.net])
 
 # unique source file --- primitive safety check
-AC_CONFIG_SRCDIR([src/database.c])
+AC_CONFIG_SRCDIR([src/main.c])
 
 # place to put some extra build scripts installed
 #AC_CONFIG_AUX_DIR([build-aux])
@@ -16,7 +16,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.9.6])
 
 # Checks for programs.
 AC_PROG_CC
-AC_PROG_LIBTOOL
+AM_PROG_CC_C_O
 
 # Checks for libraries.
 AC_CHECK_LIB([sqlite3], [sqlite3_open])
