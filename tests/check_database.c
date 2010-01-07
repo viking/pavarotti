@@ -1,5 +1,6 @@
 #include <check.h>
 #include "../src/database.h"
+#define NUM_TABLES 1
 
 p_database *db;
 char *original_home, home[2048], dot_directory[2048];
@@ -27,8 +28,9 @@ void
 remove_dot_directory()
 {
   char cmd[2048];
+  int result;
   sprintf(cmd, "rm -fr %s", dot_directory);
-  system(cmd);
+  result = system(cmd);
 }
 
 /* actual tests */
@@ -82,8 +84,8 @@ END_TEST
 START_TEST(test_creating_schema)
 {
   char path[2048];
-  unsigned char *data;
-  int result;
+  const unsigned char *data;
+  int i, result;
   sqlite3 *s_db;
   sqlite3_stmt *s_stmt;
 
@@ -97,13 +99,30 @@ START_TEST(test_creating_schema)
   if (sqlite3_open(path, &s_db) != SQLITE_OK) {
     fail("Couldn't open database!");
   }
-  sqlite3_prepare_v2(s_db, "SELECT * FROM SQLITE_MASTER", -1, &s_stmt, NULL);
+  sqlite3_prepare_v2(s_db, "SELECT name FROM SQLITE_MASTER WHERE type = 'table' ORDER BY name", -1, &s_stmt, NULL);
   result = sqlite3_step(s_stmt);
   if (result == SQLITE_DONE) {
     sqlite3_finalize(s_stmt);
     fail_if(result == SQLITE_DONE, "Schema is empty");
   }
-  fail("TODO: check for tables here");
+
+  char *expected[NUM_TABLES] = { "songs" };
+  for (i = 0; result == SQLITE_ROW; i++) {
+    if (i >= NUM_TABLES) {
+      sqlite3_finalize(s_stmt);
+      fail("Too many tables found");
+    }
+    data = sqlite3_column_text(s_stmt, 0);
+    if (strcmp(expected[i], data) != 0) {
+      sqlite3_finalize(s_stmt);
+      fail("Expected %s, got %s", expected[i], data);
+    }
+    result = sqlite3_step(s_stmt);
+  }
+  if (i < NUM_TABLES) {
+    sqlite3_finalize(s_stmt);
+    fail("Not enough tables found");
+  }
 
   sqlite3_finalize(s_stmt);
 }

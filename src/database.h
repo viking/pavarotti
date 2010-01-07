@@ -9,6 +9,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#define DATABASE_SCHEMA "CREATE TABLE songs(id INTEGER PRIMARY KEY);"
+
 typedef struct {
   sqlite3 *s_db;
 } p_database;

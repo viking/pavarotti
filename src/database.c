@@ -45,9 +45,9 @@ database_open()
   }
 
   if (exists == 0) {
-    result = sqlite3_exec(retval->s_db, "CREATE TABLE songs(id INTEGER PRIMARY KEY);", NULL, NULL, &errmsg);
+    result = sqlite3_exec(retval->s_db, DATABASE_SCHEMA, NULL, NULL, &errmsg);
     if (result != SQLITE_OK) {
-      fprintf(stderr, "Couldn't run query: %s\n", errmsg);
+      fprintf(stderr, "Couldn't create schema: %s\n", errmsg);
       sqlite3_free(errmsg);
       database_close(retval);
       return(NULL);
@@ -58,10 +58,10 @@ database_open()
 }
 
 void
-database_close(database)
-  p_database *database;
+database_close(p_db)
+  p_database *p_db;
 {
-  if (database->s_db != NULL)
-    sqlite3_close(database->s_db);
-  free(database);
+  if (p_db->s_db != NULL)
+    sqlite3_close(p_db->s_db);
+  free(p_db);
 }
