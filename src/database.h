@@ -9,7 +9,17 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#define DATABASE_SCHEMA "CREATE TABLE songs(id INTEGER PRIMARY KEY);"
+#define DATABASE_SCHEMA "\
+  CREATE TABLE songs(\
+    id INTEGER PRIMARY KEY,\
+    track INTEGER,\
+    disc INTEGER,\
+    title TEXT,\
+    artist TEXT,\
+    album TEXT,\
+    seconds INTEGER\
+  );\
+"
 
 typedef struct {
   sqlite3 *s_db;
@@ -17,5 +27,6 @@ typedef struct {
 
 p_database *database_open();
 void database_close(p_database *);
+char *database_escape(const char *);
 
 #endif

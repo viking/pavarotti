@@ -65,3 +65,41 @@ database_close(p_db)
     sqlite3_close(p_db->s_db);
   free(p_db);
 }
+
+char *
+database_escape(str)
+  const char *str;
+{
+  char *retval = NULL, *retval_tail, *str_head, *ptr;
+  int i, count, len, diff;
+
+  len = strlen(str);
+  count = 0;
+  for (i = 0; i < len; i++) {
+    if (str[i] == '\'')
+      count++;
+  }
+
+  if (count == 0) {
+    retval = (char *)malloc(sizeof(char) * len);
+    strcpy(retval, str);
+  }
+  else {
+    retval = (char *)malloc(sizeof(char) * (len + count));
+    str_head = str;
+    retval_tail = retval;
+    while ((ptr = index(str_head, '\'')) != NULL) {
+      diff = ptr - str_head;
+      if (diff > 0) {
+        strncpy(retval_tail, str_head, diff);
+        retval_tail += diff;
+      }
+      strncpy(retval_tail, "''", 2);
+      retval_tail += 2;
+      str_head = ptr + 1;
+    }
+    strcpy(retval_tail, str_head);
+  }
+
+  return retval;
+}

@@ -128,6 +128,14 @@ START_TEST(test_creating_schema)
 }
 END_TEST
 
+START_TEST(test_escaping_strings) {
+  char *expected = "foo''bar";
+  char *result = database_escape("foo'bar");
+  fail_if(strcmp(expected, result) != 0, "Expected: %s; Got: %s", expected, result);
+  free(result);
+}
+END_TEST
+
 /* test runner */
 Suite *
 database_suite()
@@ -142,6 +150,7 @@ database_suite()
   tcase_add_test(tc_core, test_unreadable_dot_directory);
   tcase_add_test(tc_core, test_unreadable_database);
   tcase_add_test(tc_core, test_creating_schema);
+  tcase_add_test(tc_core, test_escaping_strings);
   suite_add_tcase(s, tc_core);
 
   return s;
