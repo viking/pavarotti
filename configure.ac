@@ -15,6 +15,7 @@ AC_CONFIG_SRCDIR([src/main.c])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.9.6])
 
 # Checks for programs.
+CFLAGS="-g3"
 AC_PROG_CC
 AM_PROG_CC_C_O
 
@@ -30,7 +31,7 @@ AM_PATH_CHECK()
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h stdio.h errno.h unistd.h sqlite3.h sys/stat.h sys/types.h])
+AC_CHECK_HEADERS([stdlib.h stdio.h string.h errno.h unistd.h sqlite3.h sys/stat.h sys/types.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 

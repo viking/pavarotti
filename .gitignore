@@ -13,6 +13,7 @@ config.h
 config.h.in
 config.log
 src/pavarotti
+*~
 **/.deps
 **/Makefile
 **/Makefile.in

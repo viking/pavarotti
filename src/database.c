@@ -70,7 +70,8 @@ char *
 database_escape(str)
   const char *str;
 {
-  char *retval = NULL, *retval_tail, *str_head, *ptr;
+  const char *str_head;
+  char *retval = NULL, *retval_tail, *ptr;
   int i, count, len, diff;
 
   len = strlen(str);
@@ -102,4 +103,94 @@ database_escape(str)
   }
 
   return retval;
+}
+
+int
+database_exec(p_db, sql)
+  p_database *p_db;
+  const char *sql;
+{
+  return sqlite3_exec(p_db->s_db, sql, NULL, NULL, NULL);
+}
+
+p_result_set *
+database_select(p_db, sql)
+  p_database *p_db;
+  const char *sql;
+{
+  p_result_set *p_rs;
+  p_result_value *p_rv;
+  p_result_row *curr;
+  sqlite3_stmt *s_stmt;
+  int result, i, size, s_type;
+  const unsigned char *s_text;
+
+  sqlite3_prepare_v2(p_db->s_db, sql, -1, &s_stmt, NULL);
+  result = sqlite3_step(s_stmt);
+  if (result != SQLITE_ROW && result != SQLITE_DONE) {
+    sqlite3_finalize(s_stmt);
+    return NULL;
+  }
+
+  size = 100;
+  p_rs = (p_result_set *)malloc(sizeof(p_result_set));
+  p_rs->count = 0;
+  p_rs->rows = (p_result_row *)malloc(sizeof(p_result_row) * size);
+
+  while (result == SQLITE_ROW) {
+    curr = p_rs->rows + p_rs->count;
+    curr->count = sqlite3_column_count(s_stmt);
+    curr->values = (p_result_value *)malloc(sizeof(p_result_value) * curr->count);
+
+    for (i = 0; i < curr->count; i++) {
+      p_rv = curr->values + i;
+
+      s_type = sqlite3_column_type(s_stmt, i);
+      switch(s_type) {
+        case SQLITE_TEXT:
+          s_text = sqlite3_column_text(s_stmt, i);
+          p_rv->type = P_TEXT;
+          p_rv->value.text = (unsigned char *)malloc(sizeof(unsigned char) * (strlen(s_text) + 1));
+          strcpy(p_rv->value.text, s_text);
+          break;
+        case SQLITE_INTEGER:
+          p_rv->type = P_INTEGER;
+          p_rv->value.integer = sqlite3_column_int(s_stmt, i);
+          break;
+        default:
+          fprintf(stderr, "Don't understand type: %d\n", s_type);
+      }
+    }
+
+    p_rs->count++;
+    if (p_rs->count == size) {
+      size += 100;
+      p_rs->rows = (p_result_row *)realloc(p_rs->rows, sizeof(p_result_row) * size);
+    }
+    result = sqlite3_step(s_stmt);
+  }
+  sqlite3_finalize(s_stmt);
+
+  return p_rs;
+}
+
+void
+database_free_result_set(p_rs)
+  p_result_set *p_rs;
+{
+  p_result_row *p_rr;
+  p_result_value *p_rv;
+  int i, j;
+
+  for (i = 0; i < p_rs->count; i++) {
+    p_rr = p_rs->rows + i;
+    for (j = 0; j < p_rr->count; j++) {
+      p_rv = p_rr->values + j;
+      if (p_rv->type == P_TEXT)
+        free(p_rv->value.text);
+    }
+    free(p_rr->values);
+  }
+  free(p_rs->rows);
+  free(p_rs);
 }
