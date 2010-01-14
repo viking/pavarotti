@@ -21,6 +21,7 @@ AM_PROG_CC_C_O
 
 # Checks for libraries.
 AC_CHECK_LIB([sqlite3], [sqlite3_open])
+AC_CHECK_LIB([id3tag], [id3_file_open])
 
 # This macro is defined in check.m4 and tests if check.h and
 # libcheck.a are installed in your system. It sets CHECK_CFLAGS and
@@ -32,6 +33,7 @@ AM_PATH_CHECK()
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([stdlib.h stdio.h string.h errno.h unistd.h sqlite3.h sys/stat.h sys/types.h])
+AC_CHECK_HEADERS([id3tag.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 

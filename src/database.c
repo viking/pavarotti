@@ -120,7 +120,7 @@ database_select(p_db, sql)
 {
   p_result_set *p_rs;
   p_result_value *p_rv;
-  p_result_row *curr;
+  p_result_row *p_rr;
   sqlite3_stmt *s_stmt;
   int result, i, size, s_type;
   const unsigned char *s_text;
@@ -138,12 +138,12 @@ database_select(p_db, sql)
   p_rs->rows = (p_result_row *)malloc(sizeof(p_result_row) * size);
 
   while (result == SQLITE_ROW) {
-    curr = p_rs->rows + p_rs->count;
-    curr->count = sqlite3_column_count(s_stmt);
-    curr->values = (p_result_value *)malloc(sizeof(p_result_value) * curr->count);
+    p_rr = p_rs->rows + p_rs->count;
+    p_rr->count = sqlite3_column_count(s_stmt);
+    p_rr->values = (p_result_value *)malloc(sizeof(p_result_value) * p_rr->count);
 
-    for (i = 0; i < curr->count; i++) {
-      p_rv = curr->values + i;
+    for (i = 0; i < p_rr->count; i++) {
+      p_rv = p_rr->values + i;
 
       s_type = sqlite3_column_type(s_stmt, i);
       switch(s_type) {
