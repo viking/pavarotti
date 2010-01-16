@@ -13,6 +13,7 @@
 #define DATABASE_SCHEMA "\
   CREATE TABLE songs(\
     id INTEGER PRIMARY KEY,\
+    filename TEXT,\
     track INTEGER,\
     disc INTEGER,\
     title TEXT,\
