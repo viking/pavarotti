@@ -183,8 +183,23 @@ START_TEST(test_discovering) {
 }
 END_TEST
 
-START_TEST(test_discovering_with_bad_directory) {
+START_TEST(test_discovering_with_unreadable_directory) {
   collection_discover("roflsauce");
+}
+END_TEST
+
+START_TEST(test_discovering_with_unreadable_subdir) {
+  char *path;
+  struct stat buf;
+
+  path = fixture_file("foo");
+  stat(path, &buf);
+  chmod(path, 0000);
+
+  collection_discover(fixture_path);
+
+  chmod(path, buf.st_mode);
+  free(path);
 }
 END_TEST
 
@@ -197,7 +212,8 @@ collection_suite()
   TCase *tc_core = tcase_create("Core");
   tcase_add_checked_fixture (tc_core, setup, teardown);
   tcase_add_test(tc_core, test_discovering);
-  tcase_add_test(tc_core, test_discovering_with_bad_directory);
+  tcase_add_test(tc_core, test_discovering_with_unreadable_directory);
+  tcase_add_test(tc_core, test_discovering_with_unreadable_subdir);
   suite_add_tcase(s, tc_core);
 
   return s;
