@@ -1,3 +1,4 @@
 .pavarotti/
 check_database
 check_song
+check_collection
