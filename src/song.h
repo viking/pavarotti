@@ -2,6 +2,7 @@
 #include <id3tag.h>
 
 typedef struct {
+  char *filename;
   char *title;
   char *artist;
   char *album;

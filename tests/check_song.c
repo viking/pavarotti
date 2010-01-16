@@ -38,15 +38,17 @@ START_TEST(test_song_read_file) {
 
   file = fixture_file("hey.mp3");
   song = song_read_file(file);
-  free(file);
 
+  fail_unless(strcmp(song->filename, file) == 0, "Expected %s, got %s", file, song->filename);
   fail_unless(strcmp(song->title, "Hey") == 0);
   fail_unless(strcmp(song->artist, "Viking") == 0);
   fail_unless(strcmp(song->album, "Huge") == 0);
   fail_unless(song->track == 3);
   fail_unless(song->disc == 1);
   fail_unless(song->year == 2009);
+
   song_free(song);
+  free(file);
 }
 END_TEST
 

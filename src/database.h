@@ -29,7 +29,8 @@ typedef struct {
 
 typedef enum {
   P_INTEGER,
-  P_TEXT
+  P_TEXT,
+  P_NULL
 } p_result_value_type;
 
 typedef struct {

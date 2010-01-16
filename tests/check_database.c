@@ -175,14 +175,14 @@ START_TEST(test_selecting) {
   open_sqlite_db();
 
   for (i = 0; i < 101; i++) {
-    fail_if(sqlite3_exec(s_db, "INSERT INTO songs (title, track) VALUES('Huge', 1);", NULL, NULL, NULL) != SQLITE_OK, "Couldn't insert");
+    fail_if(sqlite3_exec(s_db, "INSERT INTO songs (title, artist, track) VALUES('Huge', NULL, 1);", NULL, NULL, NULL) != SQLITE_OK, "Couldn't insert");
   }
 
-  p_rs = database_select(p_db, "SELECT title, track FROM songs");
+  p_rs = database_select(p_db, "SELECT title, artist, track FROM songs");
   fail_if(p_rs->count != 101);
 
   for (i = 0; i < p_rs->count; i++) {
-    fail_if(p_rs->rows[i].count != 2, "Expected %d, got %d", 2, p_rs->rows[i].count);
+    fail_if(p_rs->rows[i].count != 3, "Expected %d, got %d", 3, p_rs->rows[i].count);
 
     p_type = p_rs->rows[i].values[0].type;
     p_text_value = p_rs->rows[i].values[0].value.text;
@@ -190,7 +190,10 @@ START_TEST(test_selecting) {
     fail_if(strcmp("Huge", p_text_value) != 0, "Expected %s, got %s", "Huge", p_text_value);
 
     p_type = p_rs->rows[i].values[1].type;
-    p_int_value = p_rs->rows[i].values[1].value.integer;
+    fail_if(p_type != P_NULL, "Expected %d, got %d", P_NULL, p_type);
+
+    p_type = p_rs->rows[i].values[2].type;
+    p_int_value = p_rs->rows[i].values[2].value.integer;
     fail_if(p_type != P_INTEGER, "Expected %d, got %d", P_INTEGER, p_type);
     fail_if(p_int_value != 1, "Expected %d, got %d", 1, p_int_value);
   }

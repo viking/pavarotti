@@ -157,6 +157,10 @@ database_select(p_db, sql)
           p_rv->type = P_INTEGER;
           p_rv->value.integer = sqlite3_column_int(s_stmt, i);
           break;
+        case SQLITE_NULL:
+          p_rv->type = P_NULL;
+          p_rv->value.integer = 0;
+          break;
         default:
           fprintf(stderr, "Don't understand type: %d\n", s_type);
       }

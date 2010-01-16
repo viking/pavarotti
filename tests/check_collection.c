@@ -4,6 +4,8 @@
 #include <sqlite3.h>
 #include "../src/collection.h"
 
+#define NUM_SONGS 5
+
 char *original_home;
 char *unreadable_path;
 char home[2048];
@@ -29,7 +31,7 @@ fixture_file(name)
 }
 
 e_result *
-expected_row(filename, track, disc, title, artist, album)
+expected_set(filename, track, disc, title, artist, album)
   char *filename;
   int track, disc;
   char *title, *artist, *album;
@@ -77,7 +79,7 @@ free_expected(r)
 }
 
 void
-compare_strings(e_str, c_index, r_index)
+compare_db_str(e_str, c_index, r_index)
   char *e_str;
   int c_index;
   int r_index;
@@ -99,7 +101,7 @@ compare_strings(e_str, c_index, r_index)
 }
 
 void
-compare_ints(e_int, c_index, r_index)
+compare_db_int(e_int, c_index, r_index)
   int e_int;
   int c_index;
   int r_index;
@@ -110,6 +112,20 @@ compare_ints(e_int, c_index, r_index)
   colname = sqlite3_column_name(s_stmt, c_index);
   a_int = sqlite3_column_int(s_stmt, c_index);
   fail_unless(e_int == a_int, "%s (row %d): Expected %d, got %d", colname, r_index, e_int, a_int);
+}
+
+void
+compare_str(e_str, a_str)
+  const char *e_str;
+  const char *a_str;
+{
+  if (e_str == NULL) {
+    fail_unless(a_str == NULL, "Expected NULL, got %s", a_str);
+  }
+  else {
+    fail_if(a_str == NULL, "Expected %s, got NULL", e_str);
+    fail_unless(strcmp(e_str, a_str) == 0, "Expected %s, got %s", e_str, a_str);
+  }
 }
 
 /* fixtures */
@@ -151,35 +167,34 @@ teardown()
 
 /* actual tests */
 START_TEST(test_discovering) {
-  int result, i, r_int, expected_num;
+  int result, i;
   char *unreadable;
-  e_result *expected[5];
+  e_result *expected[NUM_SONGS];
 
-  expected_num = 5;
-  expected[0] = expected_row("boo.mp3", 4, 2, "Boo", "Viking", "Small");
-  expected[1] = expected_row("foo/bar.mp3", 1, 0, "Foo", "Bar", "Foobar");
-  expected[2] = expected_row("hey.mp3", 3, 1, "Hey", "Viking", "Huge");
-  expected[3] = expected_row("no_tags.mp3", 0, 0, NULL, NULL, NULL);
-  expected[4] = expected_row("quotes.mp3", 0, 0, "rofl'", NULL, NULL);
+  expected[0] = expected_set("boo.mp3", 4, 2, "Boo", "Viking", "Small");
+  expected[1] = expected_set("foo/bar.mp3", 1, 0, "Foo", "Bar", "Foobar");
+  expected[2] = expected_set("hey.mp3", 3, 1, "Hey", "Viking", "Huge");
+  expected[3] = expected_set("no_tags.mp3", 0, 0, NULL, NULL, NULL);
+  expected[4] = expected_set("quotes.mp3", 0, 0, "rofl'", NULL, NULL);
 
   collection_discover(fixture_path);
 
   sqlite3_prepare_v2(s_db, "SELECT filename, track, disc, title, artist, album, seconds FROM songs ORDER BY filename", -1, &s_stmt, NULL);
   result = sqlite3_step(s_stmt);
   for (i = 0; result == SQLITE_ROW; i++) {
-    fail_if(i >= expected_num, "Too many rows");
+    fail_if(i >= NUM_SONGS, "Too many rows");
 
-    compare_strings(expected[i]->filename, 0, i);
-    compare_ints(expected[i]->track, 1, i);
-    compare_ints(expected[i]->disc, 2, i);
-    compare_strings(expected[i]->title, 3, i);
-    compare_strings(expected[i]->artist, 4, i);
-    compare_strings(expected[i]->album, 5, i);
+    compare_db_str(expected[i]->filename, 0, i);
+    compare_db_int(expected[i]->track, 1, i);
+    compare_db_int(expected[i]->disc, 2, i);
+    compare_db_str(expected[i]->title, 3, i);
+    compare_db_str(expected[i]->artist, 4, i);
+    compare_db_str(expected[i]->album, 5, i);
     free_expected(expected[i]);
 
     result = sqlite3_step(s_stmt);
   }
-  fail_if(i < expected_num, "Not enough rows");
+  fail_if(i < NUM_SONGS, "Not enough rows");
 }
 END_TEST
 
@@ -203,6 +218,40 @@ START_TEST(test_discovering_with_unreadable_subdir) {
 }
 END_TEST
 
+START_TEST(test_count) {
+  int count;
+
+  collection_discover(fixture_path);
+  count = collection_count();
+  fail_unless(count == NUM_SONGS);
+}
+END_TEST
+
+START_TEST(test_find) {
+  int i;
+  p_song *songs;
+  e_result *expected[NUM_SONGS];
+
+  expected[0] = expected_set("boo.mp3", 4, 2, "Boo", "Viking", "Small");
+  expected[1] = expected_set("foo/bar.mp3", 1, 0, "Foo", "Bar", "Foobar");
+  expected[2] = expected_set("hey.mp3", 3, 1, "Hey", "Viking", "Huge");
+  expected[3] = expected_set("no_tags.mp3", 0, 0, NULL, NULL, NULL);
+  expected[4] = expected_set("quotes.mp3", 0, 0, "rofl'", NULL, NULL);
+
+  collection_discover(fixture_path);
+  songs = collection_find("filename");
+  for (i = 0; i < NUM_SONGS; i++) {
+    compare_str(expected[i]->filename, songs[i].filename);
+    compare_str(expected[i]->title, songs[i].title);
+    compare_str(expected[i]->artist, songs[i].artist);
+    compare_str(expected[i]->album, songs[i].album);
+    fail_unless(songs[i].track == expected[i]->track, "Expected %d, got %d", expected[i]->track, songs[i].track);
+    fail_unless(songs[i].disc == expected[i]->disc, "Expected %d, got %d", expected[i]->disc, songs[i].disc);
+  }
+  fail_if(i < NUM_SONGS, "Not enough songs");
+}
+END_TEST
+
 /* test runner */
 Suite *
 collection_suite()
@@ -214,6 +263,8 @@ collection_suite()
   tcase_add_test(tc_core, test_discovering);
   tcase_add_test(tc_core, test_discovering_with_unreadable_directory);
   tcase_add_test(tc_core, test_discovering_with_unreadable_subdir);
+  tcase_add_test(tc_core, test_count);
+  tcase_add_test(tc_core, test_find);
   suite_add_tcase(s, tc_core);
 
   return s;

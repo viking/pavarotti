@@ -19,6 +19,8 @@ song_read_file(path)
   p_s = (p_song *)malloc(sizeof(p_song));
   p_s->title = p_s->artist = p_s->album = NULL;
   p_s->track = p_s->disc = p_s->year = 0;
+  p_s->filename = (char *)malloc(sizeof(char) + (strlen(path) + 1));
+  strcpy(p_s->filename, path);
 
   /* title */
   i_frame = id3_tag_findframe(i_tag, ID3_FRAME_TITLE, 0);
@@ -77,6 +79,7 @@ void
 song_free(p_s)
   p_song *p_s;
 {
+  free(p_s->filename);
   if (p_s->artist != NULL)
     free(p_s->artist);
   if (p_s->album != NULL)
