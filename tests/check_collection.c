@@ -5,6 +5,7 @@
 #include "../src/collection.h"
 
 char *original_home;
+char *unreadable_path;
 char home[2048];
 char fixture_path[2048];
 sqlite3 *s_db;
@@ -128,6 +129,10 @@ setup()
     fail("Couldn't open database!");
   }
   sqlite3_exec(s_db, "DELETE FROM songs", NULL, NULL, NULL);
+
+  /* make one file unreadable */
+  unreadable_path = fixture_file("unreadable.mp3");
+  chmod(unreadable_path, 0000);
 }
 
 void
@@ -137,23 +142,29 @@ teardown()
     sqlite3_finalize(s_stmt);
   if (s_db != NULL)
     sqlite3_close(s_db);
+
+  chmod(unreadable_path, 0644);
+  free(unreadable_path);
+
   setenv("HOME", original_home, 1);
 }
 
 /* actual tests */
 START_TEST(test_discovering) {
   int result, i, r_int, expected_num;
-  char unsigned *r_str;
-  e_result *expected[3];
+  char *unreadable;
+  e_result *expected[5];
 
-  expected_num = 3;
+  expected_num = 5;
   expected[0] = expected_row("boo.mp3", 4, 2, "Boo", "Viking", "Small");
-  expected[1] = expected_row("hey.mp3", 3, 1, "Hey", "Viking", "Huge");
-  expected[2] = expected_row("no_tags.mp3", 0, 0, "Unknown", "Unknown", "Unknown");
+  expected[1] = expected_row("foo/bar.mp3", 1, 0, "Foo", "Bar", "Foobar");
+  expected[2] = expected_row("hey.mp3", 3, 1, "Hey", "Viking", "Huge");
+  expected[3] = expected_row("no_tags.mp3", 0, 0, NULL, NULL, NULL);
+  expected[4] = expected_row("quotes.mp3", 0, 0, "rofl'", NULL, NULL);
 
   collection_discover(fixture_path);
 
-  sqlite3_prepare_v2(s_db, "SELECT filename, track, disc, title, artist, album, seconds FROM songs ORDER BY id", -1, &s_stmt, NULL);
+  sqlite3_prepare_v2(s_db, "SELECT filename, track, disc, title, artist, album, seconds FROM songs ORDER BY filename", -1, &s_stmt, NULL);
   result = sqlite3_step(s_stmt);
   for (i = 0; result == SQLITE_ROW; i++) {
     fail_if(i >= expected_num, "Too many rows");
@@ -172,6 +183,11 @@ START_TEST(test_discovering) {
 }
 END_TEST
 
+START_TEST(test_discovering_with_bad_directory) {
+  collection_discover("roflsauce");
+}
+END_TEST
+
 /* test runner */
 Suite *
 collection_suite()
@@ -181,6 +197,7 @@ collection_suite()
   TCase *tc_core = tcase_create("Core");
   tcase_add_checked_fixture (tc_core, setup, teardown);
   tcase_add_test(tc_core, test_discovering);
+  tcase_add_test(tc_core, test_discovering_with_bad_directory);
   suite_add_tcase(s, tc_core);
 
   return s;

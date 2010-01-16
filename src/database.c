@@ -82,11 +82,11 @@ database_escape(str)
   }
 
   if (count == 0) {
-    retval = (char *)malloc(sizeof(char) * len);
+    retval = (char *)malloc(sizeof(char) * (len + 1));
     strcpy(retval, str);
   }
   else {
-    retval = (char *)malloc(sizeof(char) * (len + count));
+    retval = (char *)malloc(sizeof(char) * (len + count + 1));
     str_head = str;
     retval_tail = retval;
     while ((ptr = index(str_head, '\'')) != NULL) {
