@@ -68,6 +68,8 @@ song_read_file(path)
     free(str);
   }
 
+  id3_file_close(i_file);
+
   return p_s;
 }
 

@@ -42,19 +42,19 @@ expected_row(filename, track, disc, title, artist, album)
 
   r->title = NULL;
   if (title != NULL) {
-    r->title = (char *)malloc(sizeof(char) * strlen(title));
+    r->title = (char *)malloc(sizeof(char) * (strlen(title) + 1));
     strcpy(r->title, title);
   }
 
   r->artist = NULL;
   if (artist != NULL) {
-    r->artist = (char *)malloc(sizeof(char) * strlen(artist));
+    r->artist = (char *)malloc(sizeof(char) * (strlen(artist) + 1));
     strcpy(r->artist, artist);
   }
 
   r->album = NULL;
   if (album != NULL) {
-    r->album = (char *)malloc(sizeof(char) * strlen(album));
+    r->album = (char *)malloc(sizeof(char) * (strlen(album) + 1));
     strcpy(r->album, album);
   }
 
