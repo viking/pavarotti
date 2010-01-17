@@ -22,6 +22,7 @@ AM_PROG_CC_C_O
 # Checks for libraries.
 AC_CHECK_LIB([sqlite3], [sqlite3_open])
 AC_CHECK_LIB([id3tag], [id3_file_open])
+AM_PATH_GTK_2_0(2.2.0,,AC_MSG_ERROR(pavarotti needs GTK+ 2.2.0))
 
 # This macro is defined in check.m4 and tests if check.h and
 # libcheck.a are installed in your system. It sets CHECK_CFLAGS and
