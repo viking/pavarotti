@@ -66,6 +66,9 @@ collection_discover(base_path)
   p_database *p_db;
 
   p_db = database_open();
+  if (p_db == NULL)
+    return;
+
   curr = dirlist_new(base_path, NULL);
   if (curr == NULL)
     return;
@@ -104,7 +107,7 @@ collection_discover(base_path)
       d_artist   = sanitize_str(p_s->artist);
       d_album    = sanitize_str(p_s->album);
 
-      sprintf(sql, "INSERT INTO songs (filename, track, disc, title, artist, album) VALUES(%s, %d, %d, %s, %s, %s)", d_filename, p_s->track, p_s->disc, d_title, d_artist, d_album);
+      sprintf(sql, "INSERT INTO songs (filename, track, disc, year, title, artist, album) VALUES(%s, %d, %d, %d, %s, %s, %s)", d_filename, p_s->track, p_s->disc, p_s->year, d_title, d_artist, d_album);
       result = database_exec(p_db, sql);
 
       free(d_filename);
@@ -188,7 +191,7 @@ collection_find(order_by)
 
   songs = (p_song *)malloc(sizeof(p_song) * count);
 
-  const char *tmpl = "SELECT filename, track, disc, title, artist, album FROM songs ORDER BY %s";
+  const char *tmpl = "SELECT filename, track, disc, year, title, artist, album FROM songs ORDER BY %s";
   sql = (char *)malloc(sizeof(char) * (strlen(tmpl) + strlen(order_by) + 1));
   sprintf(sql, tmpl, order_by);
   p_rs = database_select(p_db, sql);
@@ -199,9 +202,10 @@ collection_find(order_by)
       cp_result_str(&p_s->filename, p_rr->values + 0);
       p_s->track = (p_rr->values[1].type == P_INTEGER) ? p_rr->values[1].value.integer : 0;
       p_s->disc  = (p_rr->values[2].type == P_INTEGER) ? p_rr->values[2].value.integer : 0;
-      cp_result_str(&p_s->title, p_rr->values + 3);
-      cp_result_str(&p_s->artist, p_rr->values + 4);
-      cp_result_str(&p_s->album, p_rr->values + 5);
+      p_s->year  = (p_rr->values[3].type == P_INTEGER) ? p_rr->values[3].value.integer : 0;
+      cp_result_str(&p_s->title,  p_rr->values + 4);
+      cp_result_str(&p_s->artist, p_rr->values + 5);
+      cp_result_str(&p_s->album,  p_rr->values + 6);
     }
   }
 

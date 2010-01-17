@@ -15,7 +15,7 @@ sqlite3_stmt *s_stmt;
 
 typedef struct {
   char *filename;
-  int track, disc;
+  int track, disc, year;
   char *title, *artist, *album;
 } e_result;
 
@@ -31,9 +31,9 @@ fixture_file(name)
 }
 
 e_result *
-expected_set(filename, track, disc, title, artist, album)
+expected_set(filename, track, disc, year, title, artist, album)
   char *filename;
-  int track, disc;
+  int track, disc, year;
   char *title, *artist, *album;
 {
   e_result *r;
@@ -42,6 +42,7 @@ expected_set(filename, track, disc, title, artist, album)
   r->filename = fixture_file(filename);
   r->track = track;
   r->disc = disc;
+  r->year = year;
 
   r->title = NULL;
   if (title != NULL) {
@@ -171,25 +172,26 @@ START_TEST(test_discovering) {
   char *unreadable;
   e_result *expected[NUM_SONGS];
 
-  expected[0] = expected_set("boo.mp3", 4, 2, "Boo", "Viking", "Small");
-  expected[1] = expected_set("foo/bar.mp3", 1, 0, "Foo", "Bar", "Foobar");
-  expected[2] = expected_set("hey.mp3", 3, 1, "Hey", "Viking", "Huge");
-  expected[3] = expected_set("no_tags.mp3", 0, 0, NULL, NULL, NULL);
-  expected[4] = expected_set("quotes.mp3", 0, 0, "rofl'", NULL, NULL);
+  expected[0] = expected_set(    "boo.mp3", 4, 2, 2009,   "Boo", "Viking",  "Small");
+  expected[1] = expected_set("foo/bar.mp3", 1, 0,    0,   "Foo",    "Bar", "Foobar");
+  expected[2] = expected_set(    "hey.mp3", 3, 1, 2009,   "Hey", "Viking",   "Huge");
+  expected[3] = expected_set("no_tags.mp3", 0, 0,    0,    NULL,     NULL,     NULL);
+  expected[4] = expected_set( "quotes.mp3", 0, 0,    0, "rofl'",     NULL,     NULL);
 
   collection_discover(fixture_path);
 
-  sqlite3_prepare_v2(s_db, "SELECT filename, track, disc, title, artist, album, seconds FROM songs ORDER BY filename", -1, &s_stmt, NULL);
+  sqlite3_prepare_v2(s_db, "SELECT filename, track, disc, year, title, artist, album, seconds FROM songs ORDER BY filename", -1, &s_stmt, NULL);
   result = sqlite3_step(s_stmt);
   for (i = 0; result == SQLITE_ROW; i++) {
     fail_if(i >= NUM_SONGS, "Too many rows");
 
     compare_db_str(expected[i]->filename, 0, i);
-    compare_db_int(expected[i]->track, 1, i);
-    compare_db_int(expected[i]->disc, 2, i);
-    compare_db_str(expected[i]->title, 3, i);
-    compare_db_str(expected[i]->artist, 4, i);
-    compare_db_str(expected[i]->album, 5, i);
+    compare_db_int(expected[i]->track,    1, i);
+    compare_db_int(expected[i]->disc,     2, i);
+    compare_db_int(expected[i]->year,     3, i);
+    compare_db_str(expected[i]->title,    4, i);
+    compare_db_str(expected[i]->artist,   5, i);
+    compare_db_str(expected[i]->album,    6, i);
     free_expected(expected[i]);
 
     result = sqlite3_step(s_stmt);
@@ -232,11 +234,11 @@ START_TEST(test_find) {
   p_song *songs;
   e_result *expected[NUM_SONGS];
 
-  expected[0] = expected_set("boo.mp3", 4, 2, "Boo", "Viking", "Small");
-  expected[1] = expected_set("foo/bar.mp3", 1, 0, "Foo", "Bar", "Foobar");
-  expected[2] = expected_set("hey.mp3", 3, 1, "Hey", "Viking", "Huge");
-  expected[3] = expected_set("no_tags.mp3", 0, 0, NULL, NULL, NULL);
-  expected[4] = expected_set("quotes.mp3", 0, 0, "rofl'", NULL, NULL);
+  expected[0] = expected_set(    "boo.mp3", 4, 2, 2009,   "Boo", "Viking",  "Small");
+  expected[1] = expected_set("foo/bar.mp3", 1, 0,    0,   "Foo",    "Bar", "Foobar");
+  expected[2] = expected_set(    "hey.mp3", 3, 1, 2009,   "Hey", "Viking",   "Huge");
+  expected[3] = expected_set("no_tags.mp3", 0, 0,    0,    NULL,     NULL,     NULL);
+  expected[4] = expected_set( "quotes.mp3", 0, 0,    0, "rofl'",     NULL,     NULL);
 
   collection_discover(fixture_path);
   songs = collection_find("filename");
@@ -247,6 +249,7 @@ START_TEST(test_find) {
     compare_str(expected[i]->album, songs[i].album);
     fail_unless(songs[i].track == expected[i]->track, "Expected %d, got %d", expected[i]->track, songs[i].track);
     fail_unless(songs[i].disc == expected[i]->disc, "Expected %d, got %d", expected[i]->disc, songs[i].disc);
+    fail_unless(songs[i].year == expected[i]->year, "Expected %d, got %d", expected[i]->year, songs[i].year);
   }
   fail_if(i < NUM_SONGS, "Not enough songs");
 }

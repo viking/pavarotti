@@ -16,6 +16,7 @@
     filename TEXT,\
     track INTEGER,\
     disc INTEGER,\
+    year INTEGER,\
     title TEXT,\
     artist TEXT,\
     album TEXT,\
