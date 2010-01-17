@@ -24,17 +24,23 @@ AC_CHECK_LIB([sqlite3], [sqlite3_open])
 AC_CHECK_LIB([id3tag], [id3_file_open])
 AM_PATH_GTK_2_0(2.2.0,,AC_MSG_ERROR(pavarotti needs GTK+ 2.2.0))
 
-# This macro is defined in check.m4 and tests if check.h and
-# libcheck.a are installed in your system. It sets CHECK_CFLAGS and
-# CHECK_LIBS accordingly.
-#  AM_PATH_CHECK([MINIMUM-VERSION,
-#                [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-AM_PATH_CHECK()
+PKG_CHECK_MODULES([CHECK], [check >= 0.9.4])
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdlib.h stdio.h string.h errno.h unistd.h sqlite3.h sys/stat.h sys/types.h])
-AC_CHECK_HEADERS([id3tag.h])
+AC_CHECK_HEADERS([stdlib.h stdio.h string.h errno.h unistd.h sys/stat.h sys/types.h])
+AC_CHECK_HEADERS([sqlite3.h],,
+                 [
+                   echo
+                   echo "ERROR: sqlite3 headers not found!"
+                   exit
+                 ])
+AC_CHECK_HEADERS([id3tag.h],,
+                 [
+                   echo
+                   echo "ERROR: id3tag headers not found!"
+                   exit
+                 ])
 
 # Checks for typedefs, structures, and compiler characteristics.
 

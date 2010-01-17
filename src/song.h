@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <id3tag.h>
 
 typedef struct {
