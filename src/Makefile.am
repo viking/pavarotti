@@ -2,5 +2,6 @@
 
 bin_PROGRAMS = pavarotti
 pavarotti_SOURCES = main.c database.c song.c collection.c
-pavarotti_CPPFLAGS = @GTK_CFLAGS@
 pavarotti_LDADD = @GTK_LIBS@
+
+AM_CFLAGS = @GTK_CFLAGS@
