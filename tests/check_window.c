@@ -27,6 +27,7 @@ START_TEST(test_window_new) {
 
   fail_if(g_win == NULL);
   fail_unless(strcmp(gtk_window_get_title(g_win), "Pavarotti") == 0);
+  fail_unless(gtk_widget_get_visible(g_win));
 
   window_free(p_win);
 }

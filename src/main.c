@@ -5,10 +5,11 @@ main(argc, argv)
   int argc;
   char **argv;
 {
-  GtkWidget *window;
-  GtkWidget *button;
+  p_window *p_win;
 
   gtk_init(&argc, &argv);
-  window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  p_win = window_new();
+  gtk_main();
+
   return 0;
 }

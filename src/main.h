@@ -1,2 +1,1 @@
-#include <gtk/gtk.h>
-#include "collection.h"
+#include "window.h"

@@ -8,6 +8,7 @@ window_new()
   p_win = (p_window *)malloc(sizeof(p_window));
   p_win->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(p_win->window, "Pavarotti");
+  gtk_widget_show(p_win->window);
 
   return p_win;
 }
