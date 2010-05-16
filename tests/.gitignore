@@ -2,3 +2,4 @@
 check_database
 check_song
 check_collection
+check_window
